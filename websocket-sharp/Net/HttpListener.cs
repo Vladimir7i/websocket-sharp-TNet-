@@ -405,11 +405,12 @@ namespace WebSocketSharp.Net
     }
 
     /// <summary>
-    /// Gets the configuration for secure connection.
+    /// Gets the SSL configuration used to authenticate the server and
+    /// optionally the client for secure connection.
     /// </summary>
     /// <value>
-    /// A <see cref="ServerSslConfiguration"/> that represents the
-    /// configuration used to provide secure connections.
+    /// A <see cref="ServerSslConfiguration"/> that represents the SSL
+    /// configuration for secure connection.
     /// </value>
     /// <exception cref="ObjectDisposedException">
     /// This listener has been closed.

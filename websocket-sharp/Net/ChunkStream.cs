@@ -8,7 +8,7 @@
  * The MIT License
  *
  * Copyright (c) 2003 Ximian, Inc (http://www.ximian.com)
- * Copyright (c) 2012-2023 sta.blockhead
+ * Copyright (c) 2012-2022 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -163,9 +163,7 @@ namespace WebSocketSharp.Net
     }
 
     private InputChunkState setChunkSize (
-      byte[] buffer,
-      ref int offset,
-      int length
+      byte[] buffer, ref int offset, int length
     )
     {
       byte b = 0;
@@ -228,9 +226,7 @@ namespace WebSocketSharp.Net
     }
 
     private InputChunkState setTrailer (
-      byte[] buffer,
-      ref int offset,
-      int length
+      byte[] buffer, ref int offset, int length
     )
     {
       while (offset < length) {
@@ -293,10 +289,7 @@ namespace WebSocketSharp.Net
     private static void throwProtocolViolation (string message)
     {
       throw new WebException (
-              message,
-              null,
-              WebExceptionStatus.ServerProtocolViolation,
-              null
+              message, null, WebExceptionStatus.ServerProtocolViolation, null
             );
     }
 
@@ -365,9 +358,7 @@ namespace WebSocketSharp.Net
     }
 
     private InputChunkState writeData (
-      byte[] buffer,
-      ref int offset,
-      int length
+      byte[] buffer, ref int offset, int length
     )
     {
       var cnt = length - offset;
@@ -377,11 +368,9 @@ namespace WebSocketSharp.Net
         cnt = left;
 
       var data = new byte[cnt];
-
       Buffer.BlockCopy (buffer, offset, data, 0, cnt);
 
       var chunk = new Chunk (data);
-
       _chunks.Add (chunk);
 
       offset += cnt;

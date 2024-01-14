@@ -431,7 +431,10 @@ namespace WebSocketSharp.Server
         _hosts.Add (path, host);
       }
     }
-
+        public WebSocketServiceHost GetService(string path)
+        {
+            return _hosts[path];
+        }
     /// <summary>
     /// Removes all WebSocket services managed by the manager.
     /// </summary>

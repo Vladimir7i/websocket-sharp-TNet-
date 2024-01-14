@@ -8,7 +8,7 @@
  * The MIT License
  *
  * Copyright (c) 2004,2009 Novell, Inc. (http://www.novell.com)
- * Copyright (c) 2012-2023 sta.blockhead
+ * Copyright (c) 2012-2019 sta.blockhead
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,6 @@ namespace WebSocketSharp.Net
     internal IEnumerable<Cookie> Sorted {
       get {
         var list = new List<Cookie> (_list);
-
         if (list.Count > 1)
           list.Sort (compareForSorted);
 
@@ -224,10 +223,8 @@ namespace WebSocketSharp.Net
     private void add (Cookie cookie)
     {
       var idx = search (cookie);
-
       if (idx == -1) {
         _list.Add (cookie);
-
         return;
       }
 
@@ -243,16 +240,11 @@ namespace WebSocketSharp.Net
     private static int compareForSorted (Cookie x, Cookie y)
     {
       var ret = x.Version - y.Version;
-
-      if (ret != 0)
-        return ret;
-
-      ret = x.Name.CompareTo (y.Name);
-
-      if (ret != 0)
-        return ret;
-
-      return y.Path.Length - x.Path.Length;
+      return ret != 0
+             ? ret
+             : (ret = x.Name.CompareTo (y.Name)) != 0
+               ? ret
+               : y.Path.Length - x.Path.Length;
     }
 
     private static CookieCollection parseRequest (string value)
@@ -261,25 +253,22 @@ namespace WebSocketSharp.Net
 
       Cookie cookie = null;
       var ver = 0;
-      var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
 
+      var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
       var pairs = value.SplitHeaderValue (',', ';').ToList ();
 
       for (var i = 0; i < pairs.Count; i++) {
         var pair = pairs[i].Trim ();
-
         if (pair.Length == 0)
           continue;
 
         var idx = pair.IndexOf ('=');
-
         if (idx == -1) {
           if (cookie == null)
             continue;
 
           if (pair.Equals ("$port", caseInsensitive)) {
             cookie.Port = "\"\"";
-
             continue;
           }
 
@@ -289,7 +278,6 @@ namespace WebSocketSharp.Net
         if (idx == 0) {
           if (cookie != null) {
             ret.add (cookie);
-
             cookie = null;
           }
 
@@ -305,15 +293,11 @@ namespace WebSocketSharp.Net
           if (val.Length == 0)
             continue;
 
-          var s = val.Unquote ();
-
           int num;
-
-          if (!Int32.TryParse (s, out num))
+          if (!Int32.TryParse (val.Unquote (), out num))
             continue;
 
           ver = num;
-
           continue;
         }
 
@@ -325,7 +309,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Path = val;
-
           continue;
         }
 
@@ -337,7 +320,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Domain = val;
-
           continue;
         }
 
@@ -349,7 +331,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Port = val;
-
           continue;
         }
 
@@ -374,43 +355,37 @@ namespace WebSocketSharp.Net
       var ret = new CookieCollection ();
 
       Cookie cookie = null;
-      var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
 
+      var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
       var pairs = value.SplitHeaderValue (',', ';').ToList ();
 
       for (var i = 0; i < pairs.Count; i++) {
         var pair = pairs[i].Trim ();
-
         if (pair.Length == 0)
           continue;
 
         var idx = pair.IndexOf ('=');
-
         if (idx == -1) {
           if (cookie == null)
             continue;
 
           if (pair.Equals ("port", caseInsensitive)) {
             cookie.Port = "\"\"";
-
             continue;
           }
 
           if (pair.Equals ("discard", caseInsensitive)) {
             cookie.Discard = true;
-
             continue;
           }
 
           if (pair.Equals ("secure", caseInsensitive)) {
             cookie.Secure = true;
-
             continue;
           }
 
           if (pair.Equals ("httponly", caseInsensitive)) {
             cookie.HttpOnly = true;
-
             continue;
           }
 
@@ -420,7 +395,6 @@ namespace WebSocketSharp.Net
         if (idx == 0) {
           if (cookie != null) {
             ret.add (cookie);
-
             cookie = null;
           }
 
@@ -439,15 +413,11 @@ namespace WebSocketSharp.Net
           if (val.Length == 0)
             continue;
 
-          var s = val.Unquote ();
-
           int num;
-
-          if (!Int32.TryParse (s, out num))
+          if (!Int32.TryParse (val.Unquote (), out num))
             continue;
 
           cookie.Version = num;
-
           continue;
         }
 
@@ -467,26 +437,22 @@ namespace WebSocketSharp.Net
             continue;
 
           var buff = new StringBuilder (val, 32);
-
           buff.AppendFormat (", {0}", pairs[i].Trim ());
 
-          var s = buff.ToString ();
-          var fmts = new[] { "ddd, dd'-'MMM'-'yyyy HH':'mm':'ss 'GMT'", "r" };
-          var provider = CultureInfo.CreateSpecificCulture ("en-US");
-          var style = DateTimeStyles.AdjustToUniversal
-                      | DateTimeStyles.AssumeUniversal;
-
           DateTime expires;
-
-          var done = DateTime.TryParseExact (
-                       s, fmts, provider, style, out expires
-                     );
-
-          if (!done)
+          if (
+            !DateTime.TryParseExact (
+              buff.ToString (),
+              new[] { "ddd, dd'-'MMM'-'yyyy HH':'mm':'ss 'GMT'", "r" },
+              CultureInfo.CreateSpecificCulture ("en-US"),
+              DateTimeStyles.AdjustToUniversal
+              | DateTimeStyles.AssumeUniversal,
+              out expires
+            )
+          )
             continue;
 
           cookie.Expires = expires.ToLocalTime ();
-
           continue;
         }
 
@@ -497,15 +463,11 @@ namespace WebSocketSharp.Net
           if (val.Length == 0)
             continue;
 
-          var s = val.Unquote ();
-
-          int maxAge;
-
-          if (!Int32.TryParse (s, out maxAge))
+          int num;
+          if (!Int32.TryParse (val.Unquote (), out num))
             continue;
 
-          cookie.MaxAge = maxAge;
-
+          cookie.MaxAge = num;
           continue;
         }
 
@@ -517,7 +479,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Path = val;
-
           continue;
         }
 
@@ -529,7 +490,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Domain = val;
-
           continue;
         }
 
@@ -541,7 +501,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Port = val;
-
           continue;
         }
 
@@ -553,7 +512,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.Comment = urlDecode (val, Encoding.UTF8);
-
           continue;
         }
 
@@ -565,7 +523,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.CommentUri = val.Unquote ().ToUri ();
-
           continue;
         }
 
@@ -577,7 +534,6 @@ namespace WebSocketSharp.Net
             continue;
 
           cookie.SameSite = val.Unquote ();
-
           continue;
         }
 
@@ -623,7 +579,9 @@ namespace WebSocketSharp.Net
     internal static CookieCollection Parse (string value, bool response)
     {
       try {
-        return response ? parseResponse (value) : parseRequest (value);
+        return response
+               ? parseResponse (value)
+               : parseRequest (value);
       }
       catch (Exception ex) {
         throw new CookieException ("It could not be parsed.", ex);
@@ -633,19 +591,16 @@ namespace WebSocketSharp.Net
     internal void SetOrRemove (Cookie cookie)
     {
       var idx = search (cookie);
-
       if (idx == -1) {
         if (cookie.Expired)
           return;
 
         _list.Add (cookie);
-
         return;
       }
 
       if (cookie.Expired) {
         _list.RemoveAt (idx);
-
         return;
       }
 
@@ -660,10 +615,8 @@ namespace WebSocketSharp.Net
 
     internal void Sort ()
     {
-      if (_list.Count < 2)
-        return;
-
-      _list.Sort (compareForSort);
+      if (_list.Count > 1)
+        _list.Sort (compareForSort);
     }
 
     #endregion
@@ -686,7 +639,6 @@ namespace WebSocketSharp.Net
     {
       if (_readOnly) {
         var msg = "The collection is read-only.";
-
         throw new InvalidOperationException (msg);
       }
 
@@ -712,7 +664,6 @@ namespace WebSocketSharp.Net
     {
       if (_readOnly) {
         var msg = "The collection is read-only.";
-
         throw new InvalidOperationException (msg);
       }
 
@@ -733,7 +684,6 @@ namespace WebSocketSharp.Net
     {
       if (_readOnly) {
         var msg = "The collection is read-only.";
-
         throw new InvalidOperationException (msg);
       }
 
@@ -788,15 +738,11 @@ namespace WebSocketSharp.Net
       if (array == null)
         throw new ArgumentNullException ("array");
 
-      if (index < 0) {
-        var msg = "Less than zero.";
-
-        throw new ArgumentOutOfRangeException ("index", msg);
-      }
+      if (index < 0)
+        throw new ArgumentOutOfRangeException ("index", "Less than zero.");
 
       if (array.Length - index < _list.Count) {
         var msg = "The available space of the array is not enough to copy to.";
-
         throw new ArgumentException (msg);
       }
 
@@ -840,7 +786,6 @@ namespace WebSocketSharp.Net
     {
       if (_readOnly) {
         var msg = "The collection is read-only.";
-
         throw new InvalidOperationException (msg);
       }
 
@@ -848,12 +793,10 @@ namespace WebSocketSharp.Net
         throw new ArgumentNullException ("cookie");
 
       var idx = search (cookie);
-
       if (idx == -1)
         return false;
 
       _list.RemoveAt (idx);
-
       return true;
     }
 

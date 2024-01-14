@@ -428,12 +428,10 @@ namespace WebSocketSharp
     }
 
     internal static CookieCollection GetCookies (
-      this NameValueCollection headers,
-      bool response
+      this NameValueCollection headers, bool response
     )
     {
-      var name = response ? "Set-Cookie" : "Cookie";
-      var val = headers[name];
+      var val = headers[response ? "Set-Cookie" : "Cookie"];
 
       return val != null
              ? CookieCollection.Parse (val, response)
